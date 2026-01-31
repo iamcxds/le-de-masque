@@ -21,11 +21,25 @@ Levels = {
 	--   minScore=2
 	-- },
 	{
+    id=1,
 		name = "Level1",
     playerPos={2,3},
     walls={
       {0,0,0,5, "Stone"},
-      {1,0,5,0, "Stone"}
-    }
+      {1,0,5,0, "Stone"},
+      {2,5,2,5,"Ice"},
+      {2,8,2,9,"Wood"},
+    },
+    masks={
+      {3,3,"Gold"},
+      {3,4,"Stone"},
+      {2,2,"Wood"},
+    },
+    traps={
+      {4,4,"Stone"},
+      {5,5,"Fire"},
+      {3,5,"Water"},
+    },
+    exit={7,8},
 	},
 }
