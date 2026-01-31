@@ -1,2 +1,2 @@
-# le_de_masque
+# Le Dé Masqué
 A Game of masked die
