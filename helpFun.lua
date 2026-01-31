@@ -4,8 +4,33 @@ function updTableId(table)
 		value.id = index
 	end
 end
-
-
+function shallowcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == "table" then
+		copy = {}
+		for orig_key, orig_value in pairs(orig) do
+			copy[orig_key] = orig_value
+		end
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
+function deepcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == "table" then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[deepcopy(orig_key)] = deepcopy(orig_value)
+		end
+		setmetatable(copy, deepcopy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
 function coRun(_co, _then)
 	if _co and coroutine.status(_co) ~= "dead" then
 		coroutine.resume(_co)
@@ -17,6 +42,6 @@ function coRun(_co, _then)
 	end
 end
 function DrawImg(img, x, y, r, _sc)
-		local sc = _sc / img:getWidth()
-		love.graphics.draw(img, x, y, r, sc, sc, img:getWidth() / 2, img:getHeight() / 2)
+	local sc = _sc / img:getWidth()
+	love.graphics.draw(img, x, y, r, sc, sc, img:getWidth() / 2, img:getHeight() / 2)
 end

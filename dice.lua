@@ -122,6 +122,7 @@ end
 
 --dx,dy= +-1 or 0
 function PlayDice:tryMove(_dx, _dy)
+  GameLevel:saveState()
 	local tx = self.pos.x + _dx
 	local ty = self.pos.y + _dy
 	if tx == GameLevel.exit[1] and ty == GameLevel.exit[2] then
@@ -210,32 +211,35 @@ function PlayDice:moveAni(_ox, _oy)
 		self.oy = 0
 	end
 end
-
-function PlayDice:drawOneFace(dir, x, y)
+function PlayDice:drawOneFace(dir, x, y, sy)
+  sy=sy or 1
 	local face = PlayDice.faces[dir]
 	love.graphics.reset()
+	love.graphics.rectangle("line", x, y, TileSize, TileSize*sy)
 	love.graphics.setColor(self.color)
-	love.graphics.rectangle("fill", x, y, TileSize, TileSize)
+	love.graphics.rectangle("fill", x, y, TileSize, TileSize*sy)
+  --face num
+	love.graphics.setColor({ 1, 1, 1 })
+	love.graphics.print(face, x, y, 0, TileSize / 30, TileSize / 30)
+	love.graphics.reset()
 	local msk = self.masks[face]
 	if msk then
 		local msk_color = MaterialColorMap[msk[1]] or {0.7,0,0}
 		love.graphics.setColor(msk_color)
-		love.graphics.circle("fill", x + 0.5 * TileSize, y + 0.5 * TileSize, 0.5 * TileSize)
+		love.graphics.ellipse("fill", x + 0.5 * TileSize, y + 0.5 * TileSize*sy, 0.5 * TileSize,0.5 * TileSize*sy)
 		love.graphics.setColor(TemperatureColorMap[msk[2]])
-		love.graphics.print(msk[1], x, y + TileSize / 3, 0, TileSize / 40, TileSize / 40)
-		love.graphics.print(msk[2], x, y + 2 * TileSize / 3, 0, TileSize / 40, TileSize / 40)
+		love.graphics.print(msk[1], x, y  , 0, TileSize / 40, TileSize / 40)
+		love.graphics.print(msk[2], x, y +   TileSize / 3, 0, TileSize / 40, TileSize / 40)
 	end
 
-	love.graphics.setColor({ 1, 1, 1 })
-	love.graphics.print(face, x, y, 0, TileSize / 30, TileSize / 30)
-	love.graphics.reset()
 end
 
 function PlayDice:draw()
-	PlayDice:drawOneFace("u", TileSize * (self.pos.x + self.ox), TileSize * (self.pos.y + self.oy))
+	PlayDice:drawOneFace("u", TileSize * (self.pos.x + self.ox), TileSize * (self.pos.y-0.5 + self.oy))
+	PlayDice:drawOneFace("s", TileSize * (self.pos.x + self.ox), TileSize * (0.5+self.pos.y + self.oy),0.5)
 end
 function PlayDice:drawFaces()
-	local pos_x = 600
+	local pos_x = 610
 	local pos_y = 0
 	love.graphics.reset()
 

@@ -7,15 +7,16 @@ require("UI")
 -- Load some default values for our rectangle.
 function love.load()
 	font = love.graphics.newFont(30)
-  love.window.setTitle("Le Dé Masqué")
+	love.window.setTitle("Le Dé Masqué")
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	love.window.setMode(800, 600, { resizable = true })
 	TileSize = love.graphics.getHeight() / 10
+  ImgScale= TileSize/32
 
 	--{"Game","MainMenu","LevelMenu","Pause","Fini","GameOver"}
 	State = "MainMenu"
 	-- GameLevel:setData(Levels[8])
-  UI:addLevels()
+	UI:addLevels()
 	Logs = {}
 end
 
@@ -37,7 +38,7 @@ function love.draw()
 	--Game Draw
 	if State ~= "MainMenu" and State ~= "LevelMenu" then
 		GameLevel:drawStage()
-		PlayDice:draw()
+		-- PlayDice:draw()
 		PlayDice:drawFaces()
 	end
 
@@ -48,7 +49,7 @@ function love.draw()
 		end
 	end
 
-  --debug
+	--debug
 	-- local logText = ""
 	-- for key, value in pairs(Logs) do
 	-- 	logText = logText .. key .. ":" .. value .. "\n"
@@ -66,19 +67,22 @@ function love.keypressed(key)
 		if key == "r" then
 			GameLevel:restart()
 		end
+		if key == "z" then
+			GameLevel:undo()
+		end
 		if key == "escape" then
 			State = "Pause"
 		end
-		if key == "left" or key == "h" then
+		if key == "left" or key == "a" then
 			PlayDice:tryMove(-1, 0)
 		end
-		if key == "right" or key == "l" then
+		if key == "right" or key == "d" then
 			PlayDice:tryMove(1, 0)
 		end
-		if key == "down" or key == "j" then
+		if key == "down" or key == "s" then
 			PlayDice:tryMove(0, 1)
 		end
-		if key == "up" or key == "k" then
+		if key == "up" or key == "w" then
 			PlayDice:tryMove(0, -1)
 		end
 	elseif State == "Pause" and key == "escape" then

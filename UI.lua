@@ -69,11 +69,17 @@ end
 
 UI.Game = {
 	--level name
-	newWin(450, 10, 100, 40, function(self)
+	newWin(600, 300, 200, 40, function(self)
 		love.graphics.setColor(0.5, 0.5, 0.5)
 		love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 		love.graphics.setColor(cyan)
 		love.graphics.printf(GameLevel.initData.name, font, self.x, self.y, self.w, "center")
+	end),
+	newWin(600, 350, 200, 120, function(self)
+		love.graphics.setColor(0.5, 0.5, 0.5)
+		love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+		love.graphics.setColor(cyan)
+		love.graphics.printf("arrow move\n 'z' undo\n 'r' reset", font, self.x, self.y, self.w, "center")
 	end),
 }
 UI.Pause = {
@@ -97,17 +103,21 @@ UI.GameOver = {
 	newWin(300, 50, 400, 120, function(self)
 		love.graphics.setColor(0.5, 0.5, 0.5)
 		love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
-		love.graphics.setColor({1,1,1})
+		love.graphics.setColor({1,0,0})
 		love.graphics.printf("You Dead \n", font, self.x, self.y, self.w, "center")
 	end),
-	newBtn(350, 200, 300, 40, "Restart", 1, function()
+	newBtn(350, 200, 300, 40, "Undo", 1, function()
+		GameLevel:undo()
+		State = "Game"
+	end),
+	newBtn(350, 300, 300, 40, "Restart", 1, function()
 		GameLevel:restart()
 		State = "Game"
 	end),
-	newBtn(350, 300, 300, 40, "Back to Levels", 1, function()
+	newBtn(350, 400, 300, 40, "Back to Levels", 1, function()
 		State = "LevelMenu"
 	end),
-	newBtn(350, 400, 300, 40, "Back to Main Menu", 1, function()
+	newBtn(350, 500, 300, 40, "Back to Main Menu", 1, function()
 		State = "MainMenu"
 	end),
 }
@@ -117,7 +127,7 @@ UI.Fini = {
 		love.graphics.setColor(0.5, 0.5, 0.5)
 		love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
 		love.graphics.setColor(cyan)
-		love.graphics.printf("You Win! \n", font, self.x, self.y, self.w, "center")
+		love.graphics.printf("You Escaped! \n", font, self.x, self.y, self.w, "center")
 	end),
 	newBtn(350, 200, 300, 40, "Restart", 1, function()
 		GameLevel:restart()
