@@ -23,10 +23,10 @@ function Vect2Dir(dx, dy)
 	end
 end
 ---@enum (key) Temperature
-Temperature = {
-	Cold = -1,
-	Normal = 0,
-	Hot = 1,
+TemperatureColorMap = {
+	Cold = {0,1,1},
+	Normal = {0.5,0.5,0.5},
+	Hot = {1,0,0},
 }
 
 PlayDice = {}
@@ -50,7 +50,7 @@ function PlayDice:reset()
 		e = 3,
 	}
 	self.masks = {
-		[1] = { "Zorro", "Normal" },
+		-- [1] = { "Zorro", "Normal" },
 	}
 end
 function PlayDice:interact(dx, dy, isMove)
@@ -71,7 +71,8 @@ function PlayDice:interact(dx, dy, isMove)
 				--Step on trap
 				elseif tgComp.componentType == "Trap" then
 					if d_msk then
-						if tgComp.materialType == "Stone" and (d_msk[1] == "Gold" or d_msk[1] == "Stone") then
+            --only normal temp mask defense
+						if tgComp.materialType == "Gold"  and (d_msk[1] == "Gold" ) then
 						elseif tgComp.materialType == "Fire" then
 							--cold stone cool fire
 							if d_msk[2] == "Cold" then
@@ -220,7 +221,7 @@ function PlayDice:drawOneFace(dir, x, y)
 		local msk_color = MaterialColorMap[msk[1]] or {0.7,0,0}
 		love.graphics.setColor(msk_color)
 		love.graphics.circle("fill", x + 0.5 * TileSize, y + 0.5 * TileSize, 0.5 * TileSize)
-		love.graphics.setColor({ 1, 1, 1 })
+		love.graphics.setColor(TemperatureColorMap[msk[2]])
 		love.graphics.print(msk[1], x, y + TileSize / 3, 0, TileSize / 40, TileSize / 40)
 		love.graphics.print(msk[2], x, y + 2 * TileSize / 3, 0, TileSize / 40, TileSize / 40)
 	end

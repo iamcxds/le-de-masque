@@ -56,9 +56,7 @@ function GameLevel:getComponent(_x,_y)
   return GameLevel.components[_x] and GameLevel.components[_x][_y]
 end
 function GameLevel:setData(data) 
-  if not self.initData then
     self.initData=data
-  end
   GameLevel:loadData(data)
 end
 function GameLevel:loadData(data)
@@ -67,6 +65,7 @@ function GameLevel:loadData(data)
 		PlayDice.pos.x = data.playerPos[1]
 		PlayDice.pos.y = data.playerPos[2]
 	end
+  GameLevel.components={}
   -- self:setComponent(4,4,"Trap","Stone")
   -- self:setComponent(3,4,"Mask","Gold")
 	for _, wallLst in pairs(data.walls) do
@@ -90,9 +89,11 @@ function GameLevel:restart()
   end
 end
 function GameLevel:win()
-Logs.win="You win"
+  State="Fini"
 end
-function GameLevel:gameOver()  GameLevel:restart() end
+function GameLevel:gameOver()  
+  State="GameOver"
+ end
 function GameLevel:drawOneComponent(comp, x, y)
 	love.graphics.reset()
 	local material = comp.materialType
