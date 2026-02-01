@@ -6,23 +6,50 @@ require("UI")
 
 -- Load some default values for our rectangle.
 function love.load()
-	font = love.graphics.newFont(30)
+	font = love.graphics.newFont("assets/pixel.ttf", 30)
 	love.window.setTitle("Le Dé Masqué")
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	love.window.setMode(800, 600, { resizable = true })
-	TileSize = love.graphics.getHeight() / 10
-  ImgScale= TileSize/32
+	TileSize = 64
+	ImgScale = TileSize / 32
+
+	SFX = {
+		step = love.audio.newSource("assets/step.wav", "static"),
+		wall_hit = love.audio.newSource("assets/wall_hit.ogg", "static"),
+		metal_hit = love.audio.newSource("assets/metal_hit.wav", "static"),
+		pick = love.audio.newSource("assets/pick.wav", "static"),
+		pike = love.audio.newSource("assets/pike.wav", "static"),
+		broken = love.audio.newSource("assets/broken.flac", "static"),
+		fire = love.audio.newSource("assets/fire.ogg", "static"),
+		cool = love.audio.newSource("assets/cool.mp3", "static"),
+		ice = love.audio.newSource("assets/ice.wav", "static"),
+		water = love.audio.newSource("assets/water.flac", "static"),
+		sank = love.audio.newSource("assets/sank.mp3", "static"),
+		undo = love.audio.newSource("assets/undo.mp3", "static"),
+	}
+	Bkg = love.graphics.newImage("assets/bkg.png")
 
 	--{"Game","MainMenu","LevelMenu","Pause","Fini","GameOver"}
 	State = "MainMenu"
-	-- GameLevel:setData(Levels[8])
+
+	-- State = "Game"
+	-- GameLevel:setData(Levels.test)
+	RdTable = {}
+	for x = 0, 9, 1 do
+		local x_lst = {}
+		for y = 0, 9, 1 do
+			local r_id = math.random(3)
+			table.insert(x_lst, r_id)
+		end
+		table.insert(RdTable, x_lst)
+	end
+
 	UI:addLevels()
 	Logs = {}
 end
 
 -- Increase the size of the rectangle every frame.
 function love.update(dt)
-	TileSize = love.graphics.getHeight() / 10
 	gameUpd()
 end
 
@@ -35,11 +62,17 @@ function love.draw()
 	-- GoX, GoY = (wW - GScale * 1000) / 2, (wH - GScale * 800) / 2
 	-- love.graphics.translate(GoX, GoY)
 	-- love.graphics.scale(GScale)
+	local wW, wH = love.graphics.getWidth(), love.graphics.getHeight()
+	love.graphics.setColor(0.2, 0.3, 0.4)
+	love.graphics.rectangle("fill", 0, 0, wW, wH)
+	love.graphics.reset()
 	--Game Draw
 	if State ~= "MainMenu" and State ~= "LevelMenu" then
 		GameLevel:drawStage()
 		-- PlayDice:draw()
 		PlayDice:drawFaces()
+	else
+		love.graphics.draw(Bkg, 250, 70, 0, 5)
 	end
 
 	--UI
@@ -57,19 +90,23 @@ function love.draw()
 	-- love.graphics.print(logText)
 end
 
-function love.mousepressed(x, y, btn)
+function love.mousereleased(x, y, btn)
 	UI_mouseprsd(UI[State], x, y, btn)
 end
 
 function love.keypressed(key)
 	Logs.keydown = key
-	if State == "Game" then
+	if State ~= "MainMenu" and State ~= "LevelMenu" then
 		if key == "r" then
 			GameLevel:restart()
+			State = "Game"
 		end
 		if key == "z" then
 			GameLevel:undo()
+			State = "Game"
 		end
+	end
+	if State == "Game" then
 		if key == "escape" then
 			State = "Pause"
 		end
@@ -88,7 +125,8 @@ function love.keypressed(key)
 	elseif State == "Pause" and key == "escape" then
 		State = "Game"
 	elseif State == "Fini" and key == "escape" then
-		State = "LevelMenu"
+		GameLevel:nextLevel()
+		State = "Game"
 	end
 end
 

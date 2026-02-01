@@ -7,15 +7,29 @@ EnvAsset = {
 		love.graphics.newImage("assets/floor3.png"),
 	},
 	Wall = {
-		Stone = love.graphics.newImage("assets/stone_wall.png"),
+		Stone = {
+			love.graphics.newImage("assets/stone_wall.png"),
+			love.graphics.newImage("assets/stone_wall1.png"),
+			love.graphics.newImage("assets/stone_wall2.png"),
+		},
 		Ice = love.graphics.newImage("assets/ice_wall.png"),
-		Wood = love.graphics.newImage("assets/stone_wall.png"),
+		Wood = love.graphics.newImage("assets/wood_wall.png"),
 	},
 	Trap = {
 		Water = love.graphics.newImage("assets/water.png"),
 		Gold = love.graphics.newImage("assets/pike.png"),
 		Fire = love.graphics.newImage("assets/fire.png"),
 	},
+	Mask = {
+		Stone = love.graphics.newImage("assets/stone_mask.png"),
+		Gold = love.graphics.newImage("assets/gold_mask.png"),
+		Wood = love.graphics.newImage("assets/wood_mask.png"),
+	},
+	Temp = {
+		Cold = love.graphics.newImage("assets/cold.png"),
+		Hot = love.graphics.newImage("assets/hot.png"),
+	},
+
 	Exit = love.graphics.newImage("assets/exit.png"),
 }
 ---@enum (key) ComponentType
@@ -56,7 +70,7 @@ GameLevel = {
 	history = {
 		--{pos,face,mask, components}
 	},
-  time=0
+	time = 0,
 }
 ---@type fun(self,_x:number,_y:number,cT:ComponentType?,mT:MaterialType?)
 function GameLevel:setComponent(_x, _y, cT, mT)
@@ -83,6 +97,9 @@ function GameLevel:setData(data)
 	GameLevel:loadData(data)
 end
 function GameLevel:loadData(data)
+	if not data then
+		return
+	end
 	if data.playerPos then
 		PlayDice:reset()
 		PlayDice.pos.x = data.playerPos[1]
@@ -111,49 +128,61 @@ function GameLevel:restart()
 		self:loadData(self.initData)
 	end
 end
+function GameLevel:nextLevel()
+	local next_id = GameLevel.initData.id + 1
+	if Levels[next_id] then
+		GameLevel:setData(Levels[next_id])
+		return true
+	else
+		return false
+	end
+end
 function GameLevel:win()
 	State = "Fini"
 end
-function GameLevel:gameOver()
+function GameLevel:gameOver(text)
+	PlayDice.alive = false
 	State = "GameOver"
+	UI.GameOver.rmk = text or ""
 end
 function GameLevel:saveState()
 	local id = #GameLevel.history
 	local now = {}
 	now.components = deepcopy(self.components)
-	now.pos = shallowcopy( PlayDice.pos )
-	now.faces = shallowcopy( PlayDice.faces )
+	now.pos = shallowcopy(PlayDice.pos)
+	now.faces = shallowcopy(PlayDice.faces)
 	now.masks = deepcopy(PlayDice.masks)
-	table.insert(GameLevel.history, id+1 , now)
+	table.insert(GameLevel.history, id + 1, now)
 end
 function GameLevel:undo()
+	love.audio.stop()
 	local id = #GameLevel.history
 	if id > 0 then
-		local last = table.remove(GameLevel.history,id)
+		local last = table.remove(GameLevel.history, id)
 
 		GameLevel.components = last.components
 		PlayDice.pos = last.pos
 		PlayDice.faces = last.faces
 		PlayDice.masks = last.masks
+		PlayDice.alive = true
 	end
+	SFX.undo:play()
 end
 function GameLevel:drawOneComponent(comp, x, y)
 	love.graphics.reset()
 	local material = comp.materialType
-	local bkg_color = material and MaterialColorMap[material] or { 1, 1, 1 }
-	local type = comp.componentType
-	if type == "Wall" then
-		if material == "Wood" then
-			love.graphics.setColor(bkg_color)
+	local ctype = comp.componentType
+	if ctype == "Wall" then
+		local wall_t = EnvAsset.Wall[material]
+		if type(wall_t) == "table" then
+			love.graphics.draw(wall_t[RdTable[x + 1][y + 1]], x * TileSize, (y - 0.5) * TileSize, 0, ImgScale)
+		else
+			love.graphics.draw(wall_t, x * TileSize, (y - 0.5) * TileSize, 0, ImgScale)
 		end
-		love.graphics.draw(EnvAsset.Wall[material], x * TileSize, (y - 0.5) * TileSize, 0, ImgScale)
-		love.graphics.reset()
-	elseif type == "Trap" then
+	elseif ctype == "Trap" then
 		love.graphics.draw(EnvAsset.Trap[material], x * TileSize, y * TileSize, 0, ImgScale)
-	elseif type == "Mask" then
-		love.graphics.setColor(bkg_color)
-		love.graphics.circle("fill", (x + 0.5) * TileSize, (y + 0.5) * TileSize, 0.5 * TileSize)
-		love.graphics.reset()
+	elseif ctype == "Mask" then
+		love.graphics.draw(EnvAsset.Mask[material], x * TileSize, y * TileSize, 0, ImgScale)
 	end
 end
 function GameLevel:drawStage()
@@ -161,8 +190,7 @@ function GameLevel:drawStage()
 	--draw floor
 	for y = 0, 9, 1 do
 		for x = 0, 9, 1 do
-			local r_id = (17*x + 37*y) % 3 + 1
-			love.graphics.draw(EnvAsset.Floor[r_id], x * TileSize, y * TileSize, 0, ImgScale)
+			love.graphics.draw(EnvAsset.Floor[RdTable[x + 1][y + 1]], x * TileSize, y * TileSize, 0, ImgScale)
 		end
 	end
 	--exit
