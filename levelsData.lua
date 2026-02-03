@@ -200,6 +200,32 @@ Levels = {
     },
     exit={6,4},
 	},
+	{
+    id=9,
+		name = "Level9",
+    playerPos={1,1},
+    walls={
+      {0,0,7,0, "Stone"},
+      {7,1,7,5, "Stone"},
+      {0,1,0,5, "Stone"},
+      {1,5,7,5, "Stone"},
+
+      {1,2,3,2, "Stone"},
+      {1,3,1,4, "Stone"},
+      {5,1,6,2, "Stone"},
+      {5,4,5,4, "Stone"},
+    },
+    masks={
+      {4,1,"Gold"},
+      {3,1,"Stone"},
+    },
+    traps={
+      {2,1,"Ice"},
+      {6,3,"Fire"},
+      {5,3,"Gold"},
+    },
+    exit={6,4},
+	},
 	test={
     id=0,
 		name = "test",
@@ -219,6 +245,7 @@ Levels = {
       {4,4,"Gold"},
       {5,5,"Fire"},
       {3,5,"Water"},
+      {6,6,"Ice"},
     },
     exit={7,8},
 	},

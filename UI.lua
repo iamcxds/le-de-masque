@@ -104,7 +104,7 @@ UI.Game = {
 		love.graphics.setColor(0.5, 0.5, 0.5, 0.7)
 		love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 		love.graphics.setColor(cyan)
-		love.graphics.printf("arrow move\n 'z' undo\n 'r' reset", font, self.x, self.y, self.w, "center")
+		love.graphics.printf("Arrow move\n 'Z' undo\n 'R' reset", font, self.x, self.y, self.w, "center")
 	end),
 }
 UI.Pause = {

@@ -18,20 +18,6 @@ FaceMap = {
 	s = { 1, 2 },
 	d = { 1, 3.5 },
 }
----@type fun(dx:number,dy:number):DiceDir
-function Vect2Dir(dx, dy)
-	if dx == 0 and dy == 0 then
-		return "d"
-	elseif dx > 0 then
-		return "e"
-	elseif dx < 0 then
-		return "w"
-	elseif dy > 0 then
-		return "s"
-	elseif dy < 0 then
-		return "n"
-	end
-end
 ---@enum (key) Temperature
 TemperatureColorMap = {
 	Cold = { 0, 1, 1 },
@@ -120,16 +106,32 @@ function PlayDice:interact(dx, dy, isMove)
 								GameLevel:gameOver("Because the mask was burned.")
 							end
 						end
+					elseif tgComp.materialType == "Ice"  then
+						if d_msk and d_msk[2] == "Hot" then
+							GameLevel:setComponent(tx, ty, "Trap", "Water")
+							d_msk[2] = "Normal"
+							SFX.cool:play()
+							PlayDice:interact(0, 0)
+						elseif d_msk and d_msk[2] ~= "Cold" then
+							d_msk[2] = "Cold"
+							SFX.ice:play()
+            else
+              SFX.step_ice:play()
+						end
 					elseif tgComp.materialType == "Water" then
-						if (not d_msk) or d_msk[1] ~= "Wood" then
+						if d_msk and d_msk[2] == "Cold" then
+							GameLevel:setComponent(tx, ty, "Trap", "Ice")
+							SFX.ice:play()
+						elseif d_msk and d_msk[1] == "Wood" then
+							SFX.water:play()
+						else
 							GameLevel:gameOver("Because of sinking into the water.")
 							SFX.sank:play()
-						else
-							SFX.water:play()
 						end
 					end
 				end
 			else
+				SFX.step:stop()
 				SFX.step:play()
 			end
 			--mask interact with surroundings
@@ -154,12 +156,12 @@ function PlayDice:interact(dx, dy, isMove)
 				end
 			end
 			--mask has momentum to the direction
-			if isMove then
-				if tgComp.materialType == "Water" and d_msk[2] == "Cold" then
-					GameLevel:setComponent(tx, ty, "Wall", "Ice")
-					SFX.ice:play()
-				end
-			end
+			-- if isMove then
+			-- 	if tgComp.materialType == "Water" and d_msk[2] == "Cold" then
+			-- 		GameLevel:setComponent(tx, ty, "Wall", "Ice")
+			-- 		SFX.ice:play()
+			-- 	end
+			-- end
 		end
 	end
 end
@@ -167,17 +169,25 @@ end
 --dx,dy= +-1 or 0
 function PlayDice:tryMove(_dx, _dy)
 	GameLevel:saveState()
-	love.audio.stop()
+	-- love.audio.stop()
 	local tx = self.pos.x + _dx
 	local ty = self.pos.y + _dy
 	if tx == GameLevel.exit[1] and ty == GameLevel.exit[2] then
 		GameLevel:win()
 	end
 	PlayDice:interact(_dx, _dy, true)
-	local tgComp = GameLevel:getComponent(self.pos.x + _dx, self.pos.y + _dy)
+	local tgComp = GameLevel:getComponent(tx, ty)
 	if (not tgComp) or tgComp.passable then
-		PlayDice:move(_dx, _dy)
-		PlayDice:interact(0, 0)
+		local flComp = GameLevel:getComponent(self.pos.x, self.pos.y)
+		if flComp and flComp.materialType == "Ice" then
+			PlayDice:move(_dx, _dy, true)
+			PlayDice:interact(0, 0)
+			SFX.step:stop()
+			SFX.slip:play()
+		else
+			PlayDice:move(_dx, _dy)
+			PlayDice:interact(0, 0)
+		end
 		PlayDice:interact(1, 0)
 		PlayDice:interact(0, 1)
 		PlayDice:interact(-1, 0)
@@ -187,62 +197,62 @@ function PlayDice:tryMove(_dx, _dy)
 		SFX.wall_hit:play()
 	end
 end
-function PlayDice:move(_dx, _dy)
-	if _dx ~= 0 then
-		--east,west
-		self.pos.x = self.pos.x + _dx
-		--change face
-		--
-		local new_u
-		local new_d
-		local new_e
-		local new_w
-		if _dx > 0 then
-			--east
-			new_u = self.faces.w
-			new_d = self.faces.e
-			new_e = self.faces.u
-			new_w = self.faces.d
-		else
-			--west
-			new_u = self.faces.e
-			new_d = self.faces.w
-			new_e = self.faces.d
-			new_w = self.faces.u
+function PlayDice:move(_dx, _dy, is_slip)
+	self.pos.x = self.pos.x + _dx
+	self.pos.y = self.pos.y + _dy
+	self.aniCor = coroutine.create(self:moveAni(-_dx, -_dy))
+	if not is_slip then
+		if _dx ~= 0 then
+			--east,west
+			--change face
+			--
+			local new_u
+			local new_d
+			local new_e
+			local new_w
+			if _dx > 0 then
+				--east
+				new_u = self.faces.w
+				new_d = self.faces.e
+				new_e = self.faces.u
+				new_w = self.faces.d
+			else
+				--west
+				new_u = self.faces.e
+				new_d = self.faces.w
+				new_e = self.faces.d
+				new_w = self.faces.u
+			end
+			self.faces.u = new_u
+			self.faces.d = new_d
+			self.faces.e = new_e
+			self.faces.w = new_w
+		elseif _dy ~= 0 then
+			--north,south
+			--change face
+			--
+			local new_u
+			local new_d
+			local new_n
+			local new_s
+			if _dy > 0 then
+				--south
+				new_u = self.faces.n
+				new_d = self.faces.s
+				new_s = self.faces.u
+				new_n = self.faces.d
+			else
+				--north
+				new_u = self.faces.s
+				new_d = self.faces.n
+				new_s = self.faces.d
+				new_n = self.faces.u
+			end
+			self.faces.u = new_u
+			self.faces.d = new_d
+			self.faces.n = new_n
+			self.faces.s = new_s
 		end
-		self.faces.u = new_u
-		self.faces.d = new_d
-		self.faces.e = new_e
-		self.faces.w = new_w
-		self.aniCor = coroutine.create(self:moveAni(-_dx, -_dy))
-	elseif _dy ~= 0 then
-		--north,south
-		self.pos.y = self.pos.y + _dy
-		--change face
-		--
-		local new_u
-		local new_d
-		local new_n
-		local new_s
-		if _dy > 0 then
-			--south
-			new_u = self.faces.n
-			new_d = self.faces.s
-			new_s = self.faces.u
-			new_n = self.faces.d
-		else
-			--north
-			new_u = self.faces.s
-			new_d = self.faces.n
-			new_s = self.faces.d
-			new_n = self.faces.u
-		end
-		self.faces.u = new_u
-		self.faces.d = new_d
-		self.faces.n = new_n
-		self.faces.s = new_s
-
-		self.aniCor = coroutine.create(self:moveAni(-_dx, -_dy))
 	end
 end
 
@@ -264,8 +274,8 @@ function PlayDice:bumpAni(_ox, _oy)
 		local prog = 1
 		repeat
 			prog = math.max(prog - 0.1, 0)
-			self.ox = (math.abs(prog - 0.5) - 0.5) * _ox
-			self.oy = (math.abs(prog - 0.5) - 0.5) * _oy
+			self.ox = 0.5 * (math.abs(prog - 0.5) - 0.5) * _ox
+			self.oy = 0.5 * (math.abs(prog - 0.5) - 0.5) * _oy
 			coroutine.yield()
 		until prog <= 0
 		self.ox = 0

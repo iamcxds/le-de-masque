@@ -19,6 +19,7 @@ EnvAsset = {
 		Water = love.graphics.newImage("assets/water.png"),
 		Gold = love.graphics.newImage("assets/pike.png"),
 		Fire = love.graphics.newImage("assets/fire.png"),
+		Ice = love.graphics.newImage("assets/ice_floor.png"),
 	},
 	Mask = {
 		Stone = love.graphics.newImage("assets/stone_mask.png"),
@@ -155,7 +156,7 @@ function GameLevel:saveState()
 	table.insert(GameLevel.history, id + 1, now)
 end
 function GameLevel:undo()
-	love.audio.stop()
+	-- love.audio.stop()
 	local id = #GameLevel.history
 	if id > 0 then
 		local last = table.remove(GameLevel.history, id)
@@ -166,6 +167,7 @@ function GameLevel:undo()
 		PlayDice.masks = last.masks
 		PlayDice.alive = true
 	end
+  SFX.undo:stop()
 	SFX.undo:play()
 end
 function GameLevel:drawOneComponent(comp, x, y)
@@ -191,6 +193,10 @@ function GameLevel:drawStage()
 	for y = 0, 9, 1 do
 		for x = 0, 9, 1 do
 			love.graphics.draw(EnvAsset.Floor[RdTable[x + 1][y + 1]], x * TileSize, y * TileSize, 0, ImgScale)
+			local comp = self:getComponent(x, y)
+			if comp and comp.componentType~="Wall" then
+				self:drawOneComponent(comp, x, y)
+			end
 		end
 	end
 	--exit
@@ -199,7 +205,7 @@ function GameLevel:drawStage()
 	for y = 0, 9, 1 do
 		for x = 0, 9, 1 do
 			local comp = self:getComponent(x, y)
-			if comp then
+			if comp and comp.componentType== "Wall" then
 				self:drawOneComponent(comp, x, y)
 			end
 		end

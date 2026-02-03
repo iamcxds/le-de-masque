@@ -31,6 +31,21 @@ function deepcopy(orig)
 	end
 	return copy
 end
+---@type fun(dx:number,dy:number):DiceDir
+function Vect2Dir(dx, dy)
+	if dx == 0 and dy == 0 then
+		return "d"
+	elseif dx > 0 then
+		return "e"
+	elseif dx < 0 then
+		return "w"
+	elseif dy > 0 then
+		return "s"
+	else 
+		return "n"
+	end
+end
+
 function coRun(_co, _then)
 	if _co and coroutine.status(_co) ~= "dead" then
 		coroutine.resume(_co)

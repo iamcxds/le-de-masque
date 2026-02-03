@@ -26,6 +26,8 @@ function love.load()
 		water = love.audio.newSource("assets/water.flac", "static"),
 		sank = love.audio.newSource("assets/sank.mp3", "static"),
 		undo = love.audio.newSource("assets/undo.mp3", "static"),
+		slip = love.audio.newSource("assets/slip.mp3", "static"),
+		step_ice = love.audio.newSource("assets/step_ice.wav", "static"),
 	}
 	Bkg = love.graphics.newImage("assets/bkg.png")
 
@@ -33,7 +35,7 @@ function love.load()
 	State = "MainMenu"
 
 	-- State = "Game"
-	-- GameLevel:setData(Levels.test)
+	-- GameLevel:setData(Levels[9])
 	RdTable = {}
 	for x = 0, 9, 1 do
 		local x_lst = {}
@@ -94,7 +96,7 @@ function love.mousereleased(x, y, btn)
 	UI_mouseprsd(UI[State], x, y, btn)
 end
 
-function love.keypressed(key)
+function love.keyreleased(key)
 	Logs.keydown = key
 	if State ~= "MainMenu" and State ~= "LevelMenu" then
 		if key == "r" then
